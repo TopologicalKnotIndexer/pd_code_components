@@ -20,7 +20,7 @@ print(get_components_from_pd_code(hopf))
 
 ## Algorithm
 
-At each crossing, slots `0` and `2` belong to one strand and slots `1` and `3` to the other. These opposite-slot pairs form an undirected graph on arc labels. Iterative depth-first traversal finds connected components in `O(V + E)` time. Sets are used for adjacency and visitation, avoiding the quadratic membership checks in the original list-based implementation.
+At each crossing, slots `0` and `2` belong to one strand and slots `1` and `3` to the other. These opposite-slot pairs form an undirected graph on arc labels. Before traversal, the implementation verifies a consistent label type and exactly two occurrences of every label. Iterative depth-first traversal then finds connected components in `O(V + E)` time. Sets are used for adjacency and visitation, avoiding the quadratic membership checks in the original list-based implementation.
 
 ## Input conventions
 
@@ -32,12 +32,13 @@ No external software is required.
 
 ## Development
 
-Run examples and package checks before release. Python packages require Python 3.10 or newer. Build PyPI artifacts with:
+Python 3.10 or newer is required. Run the regression tests with:
 
 ```bash
-poetry check
-poetry build
+python -m unittest discover -s tests -v
 ```
+
+No PyPI publication is performed as part of repository maintenance.
 
 ## License
 
