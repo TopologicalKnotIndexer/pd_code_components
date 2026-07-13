@@ -1,6 +1,6 @@
 # pd-code-components
 
-Find link components in a planar-diagram code.
+Find the components represented by a planar-diagram code.
 
 ## Installation
 
@@ -8,15 +8,36 @@ Find link components in a planar-diagram code.
 pip install pd-code-components
 ```
 
-## Quick start
+## Usage example
 
-`from pd_code_components import get_components_from_pd_code`.
+```python
+from pd_code_components import get_components_from_pd_code
 
-PD codes are lists of four-entry crossings. Each arc label must occur exactly twice. Functions validate their inputs and do not mutate caller-owned PD-code lists unless explicitly documented.
+hopf = [[2, 3, 1, 4], [4, 1, 3, 2]]
+print(get_components_from_pd_code(hopf))
+# [[1, 2], [3, 4]]
+```
+
+## Algorithm
+
+At each crossing, slots `0` and `2` belong to one strand and slots `1` and `3` to the other. These opposite-slot pairs form an undirected graph on arc labels. Iterative depth-first traversal finds connected components in `O(V + E)` time. Sets are used for adjacency and visitation, avoiding the quadratic membership checks in the original list-based implementation.
+
+## Input conventions
+
+A PD code is represented as a list of four-entry crossings. Arc labels normally occur exactly twice. Public functions validate inputs and return new values rather than mutating caller-owned data unless their API explicitly says otherwise.
+
+## External software
+
+No external software is required.
 
 ## Development
 
-Use Python 3.10 or newer for Python packages. Build distributions with `poetry build`. Run the package's tests or examples before publishing. C++ projects require a modern standards-compliant compiler.
+Run examples and package checks before release. Python packages require Python 3.10 or newer. Build PyPI artifacts with:
+
+```bash
+poetry check
+poetry build
+```
 
 ## License
 
