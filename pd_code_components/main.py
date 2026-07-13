@@ -1,53 +1,40 @@
+from collections import defaultdict
 
-# 向一个指定的图中新增节点
-def add_edge(nxt:dict, node_a:str|int, node_b:str|int):
 
-    # 确保节点存在
-    if nxt.get(node_a) is None:
-        nxt[node_a] = []
-    if nxt.get(node_b) is None:
-        nxt[node_b] = []
+def _sort_key(value: int | str) -> tuple[int, int | str]:
+    return (0, value) if isinstance(value, int) else (1, value)
 
-    # 将节点加入到列表中
-    if node_b not in nxt[node_a]:
-        nxt[node_a].append(node_b)
-    if node_a not in nxt[node_b]:
-        nxt[node_b].append(node_a)
 
-# 使用深度优先搜索确定所有连通分量
-def dfs(nxt:dict, vis:list, arr:list, node_name:str|int):
-    if node_name in vis:
-        return
-    vis.append(node_name)
-    arr.append(node_name)
-    for nxt_node in nxt[node_name]:
-        dfs(nxt, vis, arr, nxt_node)
-
-# 从 pd_code 中计算每一个连通分支对应的数值集合
-def get_components_from_pd_code(pd_code:list[list[int|str]]) -> list[list[int|str]]:
+def get_components_from_pd_code(pd_code: list[list[int | str]]) -> list[list[int | str]]:
+    """Return the oriented-link components represented by a valid PD code."""
     if not isinstance(pd_code, list):
-        raise TypeError()
-    for item in pd_code:
-        if len(item) != 4:
-            raise AssertionError()
-        for sub_item in item:
-            if (not isinstance(sub_item, str)) and (not isinstance(sub_item, int)):
-                raise TypeError()
-    
-    # nxt 记录每个节点的后继节点（一般来说有两个）
-    nxt = {}
-    
-    # 建图   
-    for crossing in pd_code:
-        add_edge(nxt, crossing[0], crossing[2])
-        add_edge(nxt, crossing[1], crossing[3])
+        raise TypeError("pd_code must be a list")
 
-    vis = []
-    components = []
-    for node_name in nxt:
-        if node_name not in vis:
-            arr = []
-            dfs(nxt, vis, arr, node_name)
-            components.append(sorted(arr))
-    
-    return sorted(components)
+    graph: dict[int | str, set[int | str]] = defaultdict(set)
+    for crossing in pd_code:
+        if not isinstance(crossing, list) or len(crossing) != 4:
+            raise ValueError("every crossing must contain four labels")
+        for label in crossing:
+            if isinstance(label, bool) or not isinstance(label, (int, str)):
+                raise TypeError("PD labels must be integers or strings")
+        for a, b in ((crossing[0], crossing[2]), (crossing[1], crossing[3])):
+            graph[a].add(b)
+            graph[b].add(a)
+
+    components: list[list[int | str]] = []
+    seen: set[int | str] = set()
+    for start in sorted(graph, key=_sort_key):
+        if start in seen:
+            continue
+        stack = [start]
+        seen.add(start)
+        component: list[int | str] = []
+        while stack:
+            node = stack.pop()
+            component.append(node)
+            for neighbor in graph[node]:
+                if neighbor not in seen:
+                    seen.add(neighbor)
+                    stack.append(neighbor)
+        components.append(sorted(component, key=_sort_key))
+    return components
